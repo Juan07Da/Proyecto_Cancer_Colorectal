@@ -9,9 +9,17 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
+from pathlib import Path
+import os
+from os import getenv  # Importa la función getenv para obtener variables de entorno del sistema.
+from dotenv import load_dotenv  # Importa la función load_dotenv para cargar variables de entorno desde un archivo .env.
+from urllib.parse import urlparse  # Importa urlparse para analizar la URL de la base de datos.
 
 from pathlib import Path
 from django.urls import reverse_lazy
+
+# Cargar las variables de entorno
+load_dotenv() 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,8 +34,10 @@ SECRET_KEY = 'django-insecure-g#x@^f5)nqt6765-n1how!r@i*9x)$2q)em5o2ha17jc^ckz^2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
+# CSRF_TRUSTED_ORIGINS = ['https://*']
+CSRF_TRUSTED_ORIGINS = [os.getenv("DOMINIO")]
 
 # Application definition
 
@@ -48,6 +58,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',   # Agregar esta línea
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -81,12 +92,54 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# Obtener la URL desde las variables de entorno
+database_url = getenv("DATABASE_URL")  
+
+if not database_url:  
+    # Si la variable DATABASE_URL no está configurada, lanza una excepción para informar al desarrollador.
+    raise ValueError("DATABASE_URL no está configurada en el archivo .env")
+
+# Analizar la URL de la base de datos para obtener sus componentes
+tmpPostgres = urlparse(database_url)  
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',  
+        # Define el motor de base de datos que usará Django, en este caso PostgreSQL.
+
+        'NAME': tmpPostgres.path.lstrip('/').decode('utf-8') if isinstance(tmpPostgres.path, bytes) else tmpPostgres.path.lstrip('/'),
+        # Obtiene el nombre de la base de datos eliminando la barra inicial (/) de `tmpPostgres.path`.
+        # Si `tmpPostgres.path` es de tipo bytes, lo convierte a una cadena de texto usando `.decode('utf-8')`.
+
+        'USER': tmpPostgres.username,  
+        # El usuario de la base de datos, extraído de la URL.
+
+        'PASSWORD': tmpPostgres.password,  
+        # La contraseña asociada al usuario, extraída de la URL.
+
+        'HOST': tmpPostgres.hostname,  
+        # El nombre del host donde está alojada la base de datos, extraído de la URL.
+
+        'PORT': tmpPostgres.port or 5432,  
+        # El puerto en el que la base de datos escucha conexiones.
+        # Si no se especifica un puerto en la URL, usa el puerto predeterminado para PostgreSQL (5432).
+        
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
+        # Sirve para habilitar y forzar el uso de una conexión segura (SSL/TLS) entre tu aplicación Django y 
+        # tu base de datos PostgreSQL. Esto asegura que todos los datos que viajan entre tu servidor y 
+        # la base de datos estén encriptados, protegiéndolos contra posibles intercepciones o ataques.
+
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # Password validation
@@ -125,6 +178,11 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
@@ -136,8 +194,8 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True 
 EMAIL_USE_SSL = False
-EMAIL_HOST_USER = 'cancerproyecto0@gmail.com'  # Reemplaza con tu correo real
-EMAIL_HOST_PASSWORD = 'utpjrisronjsjuvx'  # Pega aquí la contraseña de aplicación SIN espacios
+EMAIL_HOST_USER = os.getenv("CORREO")  # Reemplaza con tu correo real
+EMAIL_HOST_PASSWORD =  os.getenv("CONTRASENIA")  # Pega aquí la contraseña de aplicación SIN espacios
 
 # Configuracion acceso a api de google inicio de sesion
 SITE_ID = 1
@@ -156,8 +214,8 @@ AUTHENTICATION_BACKENDS = [
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': '628933951887-273g3c42d25fi41941vsd1fe89pecqv4.apps.googleusercontent.com',
-            'secret': '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',
+            'client_id': os.getenv("ID"),
+            'secret': os.getenv("SECRETO"),
             'key': ''
         }
     }
