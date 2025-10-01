@@ -25,6 +25,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('myapp.urls')),
     path('accounts/', include('allauth.urls')),
-] #+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]
 
 handler404 = 'myapp.views.handler404'
