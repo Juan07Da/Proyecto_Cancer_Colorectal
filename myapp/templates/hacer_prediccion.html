@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicción Clínica</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: auto; padding: 20px; line-height: 1.6; }
+        h1, h2 { color: #333; }
+        form { background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
+        textarea { width: 100%; height: 150px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; resize: vertical; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        .resultado { margin-top: 20px; padding: 15px; background-color: #e9f5ff; border-left: 5px solid #007bff; border-radius: 4px; }
+        .resultado h2 { margin-top: 0; }
+    </style>
+</head>
+<body>
+
+    <h1>Análisis de Predicción Clínica</h1>
+    <p>Ingresa la descripción clínica del paciente para obtener una predicción de la categoría.</p>
+
+    <form method="post" action=".">
+        {% csrf_token %}
+        <label for="texto_clinico">Descripción Clínica:</label><br>
+        <textarea id="texto_clinico" name="texto_clinico" placeholder="Ej: Hombre de 70 años se realiza una colonoscopia de seguimiento..."></textarea><br><br>
+        <button type="submit">Hacer Predicción</button>
+    </form>
+
+    {% if resultado_prediccion %}
+        <hr>
+        <div class="resultado">
+            <h2>Resultado de la Predicción</h2>
+            <p><strong>Texto Analizado:</strong> {{ texto_ingresado }}</p>
+            <p><strong>Predicción Final:</strong> <strong>{{ resultado_prediccion }}</strong></p>
+        </div>
+    {% endif %}
+
+</body>
+</html>

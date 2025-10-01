@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views #impporta todas las funciones
+from . import views
 
 urlpatterns = [
     path('', views.welcome,name='welcome'),
@@ -12,4 +12,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name="logout"),
     path('home/', views.home, name='home'),
     path('historia_clinica/', views.historia_clinica, name='historia_clinica'),
+    path('error_404/', views.error_404, name='error_404'),
+    path('prediccion/', views.hacer_prediccion_view, name='hacer_prediccion'),
+
 ]
